@@ -108,6 +108,7 @@ h3 {
   align-items: center;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 30px;
   left: 50%;
   top: 50%;
   position: absolute;
@@ -120,6 +121,5 @@ h3 {
 
 .info-user {
   display: grid;
-  justify-content: center;
   line-height: 32px;
 }
