@@ -68,7 +68,7 @@ function renderUsers(users) {
 
     a.innerHTML = `${img}${userData}`;
 
-    a.addEventListener("click", () => open(user.id));
+    a.addEventListener("click", () => openModal(user.id));
 
     div.appendChild(a);
   });
@@ -76,10 +76,19 @@ function renderUsers(users) {
   panelUsers.appendChild(div);
 }
 
-function open(id) {
+function openModal(id) {
   modalOverlay.classList.add("active");
+  
   const user = users.find((user) => user.id === id);
-  const modal = `
+  const modal = renderModal(user);
+
+  modalOverlay.innerHTML = modal;
+  btnCloseModal = modalOverlay.querySelector(".close-modal");
+  btnCloseModal.addEventListener("click", closeModal);
+}
+
+function renderModal(user) {
+  return `
     <div class="modal">
       <a class="close-modal">
         close
@@ -101,10 +110,6 @@ function open(id) {
       </div>
     </div>
   `;
-
-  modalOverlay.innerHTML = modal;
-  btnCloseModal = modalOverlay.querySelector(".close-modal");
-  btnCloseModal.addEventListener("click", closeModal);
 }
 
 function closeModal() {
@@ -153,7 +158,7 @@ async function doFetchUsers() {
         city: location.city,
         state: location.state,
         country: location.country,
-        phone
+        phone,
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
