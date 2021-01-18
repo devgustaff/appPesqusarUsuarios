@@ -2,7 +2,9 @@ let users = [],
   buttonSearch = null,
   inputSearch = null,
   panelUsers = null,
-  panelStatistics = null;
+  panelStatistics = null,
+  modalOverlay = null,
+  btnCloseModal = null;
 
 const formatter = Intl.NumberFormat("pt-BR");
 
@@ -17,6 +19,7 @@ function mapElements() {
   inputSearch = document.querySelector("#inputSearch");
   panelUsers = document.querySelector("#panelUsers");
   panelStatistics = document.querySelector("#panelStatistics");
+  modalOverlay = document.querySelector(".modal-overlay");
 }
 
 function addEvent() {
@@ -25,7 +28,6 @@ function addEvent() {
 }
 
 function handleKeyUp(event) {
-  event.preventDefault();
   if (event.key !== "Enter") return;
   const filterText = event.target.value;
 
@@ -51,24 +53,62 @@ function filterUser(filterText) {
 function renderUsers(users) {
   panelUsers.innerHTML = "";
   const h3 = document.createElement("h3");
-  const ul = document.createElement("ul");
+  const div = document.createElement("div");
 
   h3.textContent = `${users.length} usuário(s) encontrado(s)
   `;
 
   users.forEach((user) => {
-    const li = document.createElement("li");
+    const a = document.createElement("a");
     const img = `<img class='avatar' src="${user.picture}" alt="${user.name}" />`;
     const userData = `<span>${user.name}, ${user.age} anos</span>`;
 
-    li.classList.add("flex-row");
-    li.classList.add("space-botton");
-    li.innerHTML = `${img}${userData}`;
+    a.classList.add("flex-row");
+    a.classList.add("space-botton");
 
-    ul.appendChild(li);
+    a.innerHTML = `${img}${userData}`;
+
+    a.addEventListener("click", () => open(user.id));
+
+    div.appendChild(a);
   });
   panelUsers.appendChild(h3);
-  panelUsers.appendChild(ul);
+  panelUsers.appendChild(div);
+}
+
+function open(id) {
+  modalOverlay.classList.add("active");
+  const user = users.find((user) => user.id === id);
+  const modal = `
+    <div class="modal">
+      <a class="close-modal">
+        close
+      </a>  
+      <div class="specific-user">
+        <div>
+          <img src="${user.picture}">
+        </div>
+        <div class="info-user">
+          <div>Nome: ${user.name}</div>
+          <div>Sexo: ${user.gender === "male" ? "Masculino" : "Feminino"}</div>
+          <div>Idade: ${user.age} anos</div>
+          <div>Tel: ${user.phone}</div>
+          <div>Endereço: ${user.fullLocation}</div>
+          <div>Cidade: ${user.city}</div>
+          <div>Estado: ${user.state}</div>
+          <div>País: ${user.country}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modalOverlay.innerHTML = modal;
+  btnCloseModal = modalOverlay.querySelector(".close-modal");
+  btnCloseModal.addEventListener("click", closeModal);
+}
+
+function closeModal() {
+  modalOverlay.classList.remove("active");
 }
 
 function renderStatistics(users) {
@@ -99,15 +139,21 @@ async function doFetchUsers() {
   const json = await res.json();
 
   users = json.results
-    .map(({ login, name, gender, dob, picture }) => {
+    .map(({ login, name, gender, dob, picture, location, phone }) => {
       const fullName = `${name.first} ${name.last}`;
+      const fullLocation = `${location.street.name} ${location.street.number}`;
 
       return {
         id: login.uuid,
         name: fullName,
         age: dob.age,
         picture: picture.large,
+        fullLocation,
         gender,
+        city: location.city,
+        state: location.state,
+        country: location.country,
+        phone
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
